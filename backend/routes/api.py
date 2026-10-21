@@ -198,8 +198,15 @@ def get_project_tasks(project_id):
     status = request.args.get('status', '')
     
     if search:
-        query = f"SELECT * FROM tasks WHERE project_id = {project_id} AND (title LIKE '%{search}%' OR description LIKE '%{search}%')"
-        result = db.session.execute(text(query))
+        # Use parameterized query to prevent SQL injection; bind variables are
+        # passed separately so the database driver never interpolates user input
+        # into the SQL string.
+        search_param = f"%{search}%"
+        query = text(
+            "SELECT * FROM tasks WHERE project_id = :project_id"
+            " AND (title LIKE :search OR description LIKE :search)"
+        )
+        result = db.session.execute(query, {"project_id": project_id, "search": search_param})
         tasks = [dict(row) for row in result]
     else:
         tasks = Task.query.filter_by(project_id=project_id).all()
