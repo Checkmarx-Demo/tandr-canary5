@@ -3,6 +3,7 @@ from models import db, User, Project, Task, Document, Message, Comment
 from config import Config
 import hashlib
 import os
+import secrets
 from datetime import datetime, timedelta
 import random
 
@@ -44,18 +45,23 @@ def seed_data(app):
             {'username': 'Eve', 'email': 'eve@projecthub.com', 'role': 'project_manager'},
             ]
             
+            # Load seed password from environment variable; never use a hardcoded value.
+            # A cryptographically random password is generated per-user if no env var is set,
+            # so there is no predictable fallback credential in production environments.
+            seed_password_env = os.environ.get('SEED_USER_PASSWORD')
+
             for user_info in user_data:
                 user = User.query.filter_by(username=user_info['username']).first()
                 if not user:
-                    # Password is same as username (capitalized)
-                    password = user_info['username']
+                    # Use the environment-supplied password or generate a unique random one.
+                    password = seed_password_env if seed_password_env else secrets.token_urlsafe(16)
                     user = User(
                         username=user_info['username'],
                         email=user_info['email'],
                         role=user_info['role']
                     )
                     user.set_password(password)
-                    user.api_key = f"{user_info['username']}_api_key_{hashlib.md5(password.encode()).hexdigest()}"
+                    user.api_key = f"{user_info['username']}_api_key_{hashlib.md5(os.urandom(16)).hexdigest()}"
                     db.session.add(user)
                     test_users.append(user)
             
@@ -468,7 +474,7 @@ def seed_data(app):
             print(f"  - Comments: {Comment.query.count()}")
             print(f"  - Messages: {Message.query.count()}")
             print(f"  - Documents: {Document.query.count()}")
-            print(f"\nTest user credentials (all use password: password123):")
+            print(f"\nTest users created (passwords set from SEED_USER_PASSWORD env var or randomized):")
             for user in test_users:
                 print(f"  - {user.username} ({user.email}) - Role: {user.role}")
         except Exception as e:
