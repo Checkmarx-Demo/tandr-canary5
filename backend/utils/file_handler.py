@@ -2,10 +2,10 @@
 import os
 import uuid
 import hashlib
+import json
 from werkzeug.utils import secure_filename
 from config import Config
 import xml.etree.ElementTree as ET
-import pickle
 try:
     import yaml
 except ImportError:
@@ -73,11 +73,22 @@ def process_xml_file(file_path):
         return {'error': str(e)}
 
 def process_pickle_file(file_path):
-    """Process pickle file"""
+    """Process pickle file — pickle deserialization of untrusted data is disabled.
+
+    Pickle can execute arbitrary code during deserialization (CWE-502).
+    If the file contains JSON-encoded data it is parsed safely; otherwise
+    an error is returned so that callers are not silently bypassed.
+    """
     try:
-        with open(file_path, 'rb') as f:
-            data = pickle.load(f)
+        # Attempt to read the file as JSON (a safe, data-only format).
+        # Pickle deserialization is intentionally not supported because
+        # pickle.load() on untrusted input allows remote code execution.
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
         return data
+    except (ValueError, UnicodeDecodeError):
+        return {'error': 'Pickle deserialization of untrusted data is not supported. '
+                         'Please provide data in JSON format.'}
     except Exception as e:
         return {'error': str(e)}
 
