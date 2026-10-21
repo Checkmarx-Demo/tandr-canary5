@@ -14,8 +14,8 @@ class Config:
     AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     AWS_S3_BUCKET = "projecthub-files-public"
     
-    ADMIN_EMAIL = "admin@projecthub.com"
-    ADMIN_PASSWORD = "admin123"
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@projecthub.com')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
     
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = False
