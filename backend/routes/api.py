@@ -350,23 +350,34 @@ def global_search():
         'tasks': []
     }
     
+    # Use parameterized queries to prevent SQL injection.
+    # The :like_query bind parameter is passed separately so the database
+    # driver handles escaping — untrusted input never becomes SQL syntax.
+    like_param = f"%{query}%"
+
     try:
-        user_query = f"SELECT * FROM users WHERE username LIKE '%{query}%' OR email LIKE '%{query}%'"
-        user_result = db.session.execute(text(user_query))
+        user_query = text(
+            "SELECT * FROM users WHERE username LIKE :like_query OR email LIKE :like_query"
+        )
+        user_result = db.session.execute(user_query, {"like_query": like_param})
         results['users'] = [dict(row) for row in user_result]
     except:
         pass
-    
+
     try:
-        project_query = f"SELECT * FROM projects WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'"
-        project_result = db.session.execute(text(project_query))
+        project_query = text(
+            "SELECT * FROM projects WHERE name LIKE :like_query OR description LIKE :like_query"
+        )
+        project_result = db.session.execute(project_query, {"like_query": like_param})
         results['projects'] = [dict(row) for row in project_result]
     except:
         pass
-    
+
     try:
-        task_query = f"SELECT * FROM tasks WHERE title LIKE '%{query}%' OR description LIKE '%{query}%'"
-        task_result = db.session.execute(text(task_query))
+        task_query = text(
+            "SELECT * FROM tasks WHERE title LIKE :like_query OR description LIKE :like_query"
+        )
+        task_result = db.session.execute(task_query, {"like_query": like_param})
         results['tasks'] = [dict(row) for row in task_result]
     except:
         pass
