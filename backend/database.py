@@ -489,18 +489,23 @@ def init_db(app):
         if not admin:
             admin = User.query.filter_by(username='admin').first()
         if not admin:
-            # Password is same as username
-            admin_password = 'Admin'
+            # Load admin password from environment variable; abort if not set
+            admin_password = Config.ADMIN_PASSWORD
+            if not admin_password:
+                raise RuntimeError(
+                    "ADMIN_PASSWORD environment variable is not set. "
+                    "Please set it before starting the application."
+                )
             admin = User(
                 username='Admin',
                 email=Config.ADMIN_EMAIL,
                 role='admin'
             )
             admin.set_password(admin_password)
-            admin.api_key = "admin_api_key_12345"
+            admin.api_key = os.environ.get('ADMIN_API_KEY', '')
             db.session.add(admin)
             db.session.commit()
-            print(f"Created admin user: {Config.ADMIN_EMAIL} / {admin_password}")
+            print(f"Created admin user: {Config.ADMIN_EMAIL}")
         
         # Seed test data (only if database is empty)
         seed_data(app)
