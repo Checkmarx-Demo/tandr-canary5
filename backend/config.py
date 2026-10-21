@@ -1,21 +1,23 @@
 # Configuration file
-# WARNING: This file contains hardcoded secrets for demonstration purposes only
+# All secrets MUST be supplied via environment variables — no hardcoded fallbacks.
 
 import os
 
 class Config:
-    JWT_SECRET_KEY = "secret_key_12345"
-    
-    DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"
+    # JWT secret key must be set in the environment; application will raise at startup if missing.
+    JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']
+
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
-    AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    AWS_S3_BUCKET = "projecthub-files-public"
-    
-    ADMIN_EMAIL = "admin@projecthub.com"
-    ADMIN_PASSWORD = "admin123"
+
+    # AWS credentials must be provided via environment variables or IAM roles.
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_BUCKET = os.environ.get('AWS_S3_BUCKET', 'projecthub-files-public')
+
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
     
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = False
