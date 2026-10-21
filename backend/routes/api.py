@@ -350,23 +350,32 @@ def global_search():
         'tasks': []
     }
     
+    # Use a parameterized LIKE pattern to prevent SQL injection
+    like_param = f"%{query}%"
+
     try:
-        user_query = f"SELECT * FROM users WHERE username LIKE '%{query}%' OR email LIKE '%{query}%'"
-        user_result = db.session.execute(text(user_query))
+        user_result = db.session.execute(
+            text("SELECT * FROM users WHERE username LIKE :pattern OR email LIKE :pattern"),
+            {"pattern": like_param}
+        )
         results['users'] = [dict(row) for row in user_result]
     except:
         pass
-    
+
     try:
-        project_query = f"SELECT * FROM projects WHERE name LIKE '%{query}%' OR description LIKE '%{query}%'"
-        project_result = db.session.execute(text(project_query))
+        project_result = db.session.execute(
+            text("SELECT * FROM projects WHERE name LIKE :pattern OR description LIKE :pattern"),
+            {"pattern": like_param}
+        )
         results['projects'] = [dict(row) for row in project_result]
     except:
         pass
-    
+
     try:
-        task_query = f"SELECT * FROM tasks WHERE title LIKE '%{query}%' OR description LIKE '%{query}%'"
-        task_result = db.session.execute(text(task_query))
+        task_result = db.session.execute(
+            text("SELECT * FROM tasks WHERE title LIKE :pattern OR description LIKE :pattern"),
+            {"pattern": like_param}
+        )
         results['tasks'] = [dict(row) for row in task_result]
     except:
         pass
