@@ -4,7 +4,7 @@
 import os
 
 class Config:
-    JWT_SECRET_KEY = "secret_key_12345"
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     
     DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"

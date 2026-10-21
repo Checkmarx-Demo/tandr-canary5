@@ -7,7 +7,23 @@ from config import Config
 from models import User, db
 from utils.logger import log_login_attempt, log_user_action
 
-JWT_SECRET = Config.JWT_SECRET_KEY
+def _get_jwt_secret():
+    """Return the JWT secret from the active Flask app config or the module-level Config.
+
+    Raises RuntimeError if no secret has been configured, ensuring that the
+    application cannot start (or process requests) without a proper secret.
+    """
+    try:
+        from flask import current_app
+        secret = current_app.config.get('JWT_SECRET_KEY')
+    except RuntimeError:
+        # No active application context — fall back to the class-level config.
+        secret = Config.JWT_SECRET_KEY
+    if not secret:
+        raise RuntimeError(
+            "JWT_SECRET_KEY environment variable must be set to a strong secret value."
+        )
+    return secret
 
 def generate_token(user_id, username):
     """Generate JWT token"""
@@ -16,8 +32,8 @@ def generate_token(user_id, username):
         'username': username,
         'iat': datetime.utcnow(),
     }
-    
-    token = jwt.encode(payload, JWT_SECRET, algorithm=Config.JWT_ALGORITHM)
+
+    token = jwt.encode(payload, _get_jwt_secret(), algorithm=Config.JWT_ALGORITHM)
     if isinstance(token, bytes):
         token = token.decode('utf-8')
     return token
@@ -25,7 +41,7 @@ def generate_token(user_id, username):
 def verify_token(token):
     """Verify JWT token"""
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[Config.JWT_ALGORITHM])
+        payload = jwt.decode(token, _get_jwt_secret(), algorithms=[Config.JWT_ALGORITHM])
         return payload
     except jwt.InvalidTokenError:
         return None
