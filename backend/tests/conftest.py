@@ -8,6 +8,11 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Set the JWT secret env var before any module that reads it is imported.
+# This value is for test use only; it is never used in production.
+if not os.environ.get('JWT_SECRET_KEY'):
+    os.environ['JWT_SECRET_KEY'] = 'test-secret-key-for-unit-testing-only'
+
 from flask import Flask
 from flask_cors import CORS
 from models import db, User, Project, Task, Document, Message
