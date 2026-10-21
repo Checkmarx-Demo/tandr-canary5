@@ -8,6 +8,10 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Provide a test-only JWT secret so that Config (which now requires the env var)
+# can be imported without raising KeyError during the test session.
+os.environ.setdefault('JWT_SECRET_KEY', 'test-secret-key-for-unit-testing-only')
+
 from flask import Flask
 from flask_cors import CORS
 from models import db, User, Project, Task, Document, Message
