@@ -1,39 +1,43 @@
 # Configuration file
-# WARNING: This file contains hardcoded secrets for demonstration purposes only
+# All sensitive values must be supplied via environment variables.
+# Do NOT hardcode secrets, passwords, or keys in this file.
 
 import os
 
 class Config:
-    JWT_SECRET_KEY = "secret_key_12345"
-    
-    DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or "postgresql://projecthub:password123@localhost:5432/projecthub"
+    # JWT secret key must be set via environment variable
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
-    AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    AWS_S3_BUCKET = "projecthub-files-public"
-    
-    ADMIN_EMAIL = "admin@projecthub.com"
-    ADMIN_PASSWORD = "admin123"
-    
+
+    # AWS credentials must be set via environment variables or IAM roles
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_BUCKET = os.environ.get('AWS_S3_BUCKET', 'projecthub-files-public')
+
+    # Admin credentials must be set via environment variables
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = False
     PERMANENT_SESSION_LIFETIME = None
-    
+
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRATION_DELTA = None
-    
+
     UPLOAD_FOLDER = "/app/uploads"
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'xml', 'php', 'exe', 'sh'}
-    
+
     CORS_ORIGINS = "*"
-    
+
     LOG_LEVEL = "DEBUG"
     LOG_FILE = "/app/logs/app.log"
-    
+
     PASSWORD_HASH_ALGORITHM = "md5"
-    
+
     API_RATE_LIMIT = None
 

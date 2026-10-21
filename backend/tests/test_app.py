@@ -74,6 +74,139 @@ class TestRouteImports(unittest.TestCase):
             self.fail(f"Failed to import tasks routes: {e}")
 
 
+class TestConfigNoHardcodedSecrets(unittest.TestCase):
+    """Tests verifying that Config class does not contain hardcoded secrets (CWE-798)."""
+
+    def setUp(self):
+        from config import Config
+        self.Config = Config
+
+    def test_admin_password_not_hardcoded(self):
+        """ADMIN_PASSWORD must come from env var, not be a hardcoded literal."""
+        import inspect, ast, textwrap
+
+        source_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config.py',
+        )
+        with open(source_path) as f:
+            tree = ast.parse(f.read())
+
+        # Walk the AST looking for `ADMIN_PASSWORD = <literal string>`
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == 'Config':
+                for item in ast.walk(node):
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name) and target.id == 'ADMIN_PASSWORD':
+                                # The value must NOT be a string constant
+                                self.assertNotIsInstance(
+                                    item.value,
+                                    ast.Constant,
+                                    "ADMIN_PASSWORD must not be assigned a hardcoded string literal in Config",
+                                )
+
+    def test_jwt_secret_key_not_hardcoded(self):
+        """JWT_SECRET_KEY must come from env var, not be a hardcoded literal."""
+        import ast
+
+        source_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config.py',
+        )
+        with open(source_path) as f:
+            tree = ast.parse(f.read())
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == 'Config':
+                for item in ast.walk(node):
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name) and target.id == 'JWT_SECRET_KEY':
+                                self.assertNotIsInstance(
+                                    item.value,
+                                    ast.Constant,
+                                    "JWT_SECRET_KEY must not be assigned a hardcoded string literal in Config",
+                                )
+
+    def test_aws_secret_access_key_not_hardcoded(self):
+        """AWS_SECRET_ACCESS_KEY must come from env var, not be a hardcoded literal."""
+        import ast
+
+        source_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config.py',
+        )
+        with open(source_path) as f:
+            tree = ast.parse(f.read())
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == 'Config':
+                for item in ast.walk(node):
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name) and target.id == 'AWS_SECRET_ACCESS_KEY':
+                                self.assertNotIsInstance(
+                                    item.value,
+                                    ast.Constant,
+                                    "AWS_SECRET_ACCESS_KEY must not be assigned a hardcoded string literal in Config",
+                                )
+
+    def test_admin_password_reads_from_env(self):
+        """Config.ADMIN_PASSWORD reads value from ADMIN_PASSWORD environment variable."""
+        test_password = 'env-supplied-test-password'
+        original = os.environ.pop('ADMIN_PASSWORD', None)
+        try:
+            os.environ['ADMIN_PASSWORD'] = test_password
+            # Re-import to pick up env value (class-level assignment)
+            import importlib
+            import config as config_module
+            importlib.reload(config_module)
+            self.assertEqual(config_module.Config.ADMIN_PASSWORD, test_password)
+        finally:
+            if original is None:
+                os.environ.pop('ADMIN_PASSWORD', None)
+            else:
+                os.environ['ADMIN_PASSWORD'] = original
+            # Reload to restore original state
+            import importlib
+            import config as config_module
+            importlib.reload(config_module)
+
+    def test_admin_password_none_when_env_unset(self):
+        """Config.ADMIN_PASSWORD is None when environment variable is not set."""
+        original = os.environ.pop('ADMIN_PASSWORD', None)
+        try:
+            import importlib
+            import config as config_module
+            importlib.reload(config_module)
+            self.assertIsNone(config_module.Config.ADMIN_PASSWORD)
+        finally:
+            if original is not None:
+                os.environ['ADMIN_PASSWORD'] = original
+            import importlib
+            import config as config_module
+            importlib.reload(config_module)
+
+    def test_no_known_default_credentials_in_config_source(self):
+        """Config source must not contain well-known default passwords as string literals."""
+        known_bad = ['admin123', 'password123', 'secret_key_12345',
+                     'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY']
+        source_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config.py',
+        )
+        with open(source_path) as f:
+            source = f.read()
+
+        for bad_value in known_bad:
+            self.assertNotIn(
+                bad_value,
+                source,
+                f"Hardcoded secret '{bad_value}' found in config.py",
+            )
+
+
 if __name__ == '__main__':
     unittest.main()
 
