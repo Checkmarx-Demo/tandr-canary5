@@ -123,19 +123,21 @@ def delete_message(message_id):
 def search_messages():
     """Search messages"""
     user = get_current_user()
-    
+
     query = request.args.get('q', '')
-    
+
     if not query:
         return jsonify({'error': 'Search query required'}), 400
-    
-    from sqlalchemy import text
-    sql_query = f"SELECT * FROM messages WHERE content LIKE '%{query}%' OR subject LIKE '%{query}%'"
-    result = db.session.execute(text(sql_query))
-    messages = [dict(row) for row in result]
-    
+
+    # Use ORM parameterized LIKE queries to prevent SQL injection.
+    # User input is passed as a bound parameter, never interpolated into SQL.
+    search_term = f'%{query}%'
+    messages = Message.query.filter(
+        Message.content.like(search_term) | Message.subject.like(search_term)
+    ).all()
+
     return jsonify({
         'query': query,
-        'results': messages
+        'results': [m.to_dict() for m in messages]
     })
 
