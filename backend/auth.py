@@ -8,6 +8,11 @@ from models import User, db
 from utils.logger import log_login_attempt, log_user_action
 
 JWT_SECRET = Config.JWT_SECRET_KEY
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET_KEY environment variable is not set. "
+        "Set it to a strong random secret before starting the server."
+    )
 
 def generate_token(user_id, username):
     """Generate JWT token"""
