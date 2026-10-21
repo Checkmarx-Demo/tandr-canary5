@@ -29,8 +29,12 @@ def save_uploaded_file(file, project_id=None):
     """Save uploaded file"""
     if not file or not file.filename:
         return None, "No file provided"
-    
-    original_filename = file.filename
+
+    # Enforce allowlist: reject files with dangerous or disallowed extensions
+    if not allowed_file(file.filename):
+        return None, "File type not allowed"
+
+    original_filename = secure_filename(file.filename)
     filename = f"{uuid.uuid4()}_{original_filename}"
     file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
     
