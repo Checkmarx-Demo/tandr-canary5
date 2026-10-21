@@ -23,10 +23,18 @@ def get_tasks():
     assigned_to = request.args.get('assigned_to')
     
     if search:
-        query = f"SELECT * FROM tasks WHERE title LIKE '%{search}%' OR description LIKE '%{search}%'"
+        # Use parameterized query to prevent SQL injection
+        search_param = f'%{search}%'
         if project_id:
-            query += f" AND project_id = {project_id}"
-        result = db.session.execute(text(query))
+            result = db.session.execute(
+                text("SELECT * FROM tasks WHERE (title LIKE :search OR description LIKE :search) AND project_id = :project_id"),
+                {'search': search_param, 'project_id': project_id}
+            )
+        else:
+            result = db.session.execute(
+                text("SELECT * FROM tasks WHERE title LIKE :search OR description LIKE :search"),
+                {'search': search_param}
+            )
         tasks = [dict(row) for row in result]
     else:
         query = Task.query
