@@ -26,7 +26,7 @@ class Config:
     
     UPLOAD_FOLDER = "/app/uploads"
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024
-    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'xml', 'php', 'exe', 'sh'}
+    ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx'}
     
     CORS_ORIGINS = "*"
     
