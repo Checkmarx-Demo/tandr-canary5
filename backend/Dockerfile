@@ -1,10 +1,9 @@
 FROM python:3.11-slim
 
-# Set environment variables
-ENV DATABASE_URL="postgresql://projecthub:password123@db:5432/projecthub"
-ENV JWT_SECRET="secret_key_12345"
-ENV AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
-ENV AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+# Environment variables with secrets must be supplied at runtime
+# (e.g. via docker-compose environment:, --env-file, or a secrets manager).
+# Do NOT set DATABASE_URL, JWT_SECRET, AWS_ACCESS_KEY_ID, or
+# AWS_SECRET_ACCESS_KEY as hard-coded ENV instructions here.
 
 EXPOSE 5000 8000 9000
 
