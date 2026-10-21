@@ -169,8 +169,12 @@ def get_projects_api():
     status = request.args.get('status', '')
     
     if search:
-        query = f"SELECT * FROM projects WHERE name LIKE '%{search}%' OR description LIKE '%{search}%'"
-        result = db.session.execute(text(query))
+        # Use a parameterized query to prevent SQL injection. The search term
+        # is passed as a bound parameter (:search) rather than embedded in the
+        # query string via string interpolation.
+        search_param = f"%{search}%"
+        query = text("SELECT * FROM projects WHERE name LIKE :search OR description LIKE :search")
+        result = db.session.execute(query, {"search": search_param})
         projects = [dict(row) for row in result]
     else:
         projects = Project.query.all()
