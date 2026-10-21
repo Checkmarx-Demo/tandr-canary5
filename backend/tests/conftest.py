@@ -8,6 +8,12 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Set required environment variables before importing Config so that
+# _require_env() does not raise during test collection.
+os.environ.setdefault('JWT_SECRET_KEY', 'test-secret-key-for-unit-testing-only')
+os.environ.setdefault('DATABASE_URL', 'sqlite:///:memory:')
+os.environ.setdefault('ADMIN_PASSWORD', 'test-admin-password-only')
+
 from flask import Flask
 from flask_cors import CORS
 from models import db, User, Project, Task, Document, Message
